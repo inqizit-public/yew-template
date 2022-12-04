@@ -73,7 +73,7 @@ impl eframe::App for TemplateApp {
             });
 
             ui.add(egui::Slider::new(value, 0.0..=10.0).text("value"));
-            if ui.button("Increment").clicked() {
+            if ui.button("Increment +").clicked() {
                 *value += 1.0;
             }
 
@@ -99,7 +99,7 @@ impl eframe::App for TemplateApp {
             ui.hyperlink("https://github.com/emilk/eframe_template");
             ui.add(egui::github_link_file!(
                 "https://github.com/emilk/eframe_template/blob/master/",
-                "Source code."
+                "Hello "
             ));
             egui::warn_if_debug_build(ui);
         });
