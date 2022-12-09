@@ -9,7 +9,6 @@ test:
 
 dist: 
 	rm -rf ${CWD}/dist
-	go build ${CWD}/cmd/main.go
 	go install gioui.org/cmd/gogio@latest
 	echo ${CWD}
 	gogio -target js ${CWD}/cmd
