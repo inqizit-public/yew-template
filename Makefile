@@ -1,4 +1,4 @@
-.PHONY: build
+.PHONY: build serve 
 
 build: 
 	cargo build
