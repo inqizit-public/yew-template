@@ -28,7 +28,7 @@ impl Component for App {
                 true // Return true to cause the displayed change to update
             }
             Msg::Decrement => {
-                self.value -= 11;
+                self.value -= 100;
                 console::log!("minus one");
                 true
             }
