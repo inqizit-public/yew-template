@@ -22,11 +22,5 @@ jobs:
       - name: checkout repo
         uses: actions/checkout@v2
       - name: dist
-        run: make dist
-      - name: deploy
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: dist
-          # this option will not maintain any history of your previous pages deployment
-          # set to false if you want all page build to be committed to your gh-pages branch history
-          single-commit: true
+        run: make deploy
+        
