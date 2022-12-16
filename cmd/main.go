@@ -1,98 +1,132 @@
 package main
 
 import (
-	"image/color"
 	"log"
 	"os"
+	"time"
 
-	"gioui.org/app"             // app contains Window handling.
-	"gioui.org/font/gofont"     // gofont is used for loading the default font.
-	"gioui.org/io/system"       // system is used for system events (e.g. closing the window).
-	"gioui.org/layout"          // layout is used for layouting widgets.
-	"gioui.org/op"              // op is used for recording different operations.
-	"gioui.org/text"            // text contains constants for text layouting.
-	"gioui.org/unit"            // unit is used to define pixel-independent sizes
-	"gioui.org/widget/material" // material contains material design widgets.
-
-	"quinelab/web/internal/uilib"
+	"gioui.org/app"
+	"gioui.org/font/gofont"
+	"gioui.org/io/system"
+	"gioui.org/layout"
+	"gioui.org/op"
+	"gioui.org/unit"
+	"gioui.org/widget"
+	"gioui.org/widget/material"
 )
 
-var (
-	TitleColor = color.NRGBA{R: 127, G: 0, B: 0, A: 255}
-)
+type C = layout.Context
+type D = layout.Dimensions
+
+var progress float32
+
+// is the egg boiling?
+var boiling bool
+
+// Define the progress variables, a channel and a variable
+var progressIncrementer chan float32
 
 func main() {
-	// The ui loop is separated from the application window creation
-	// such that it can be used for testing.
-	ui := NewUI()
-
+	// Setup a separate channel to provide ticks to increment progress
+	progressIncrementer = make(chan float32)
 	go func() {
+		for {
+			time.Sleep(time.Second / 25)
+			progressIncrementer <- 0.004
+		}
+	}()
+	go func() {
+		// create new window
 		w := app.NewWindow(
-			// Set the window title.
-			app.Title(uilib.Name()),
-			// Set the size for the window.
-			app.Size(unit.Dp(800), unit.Dp(400)),
+			app.Title("Egg timer"),
+			app.Size(unit.Dp(400), unit.Dp(600)),
 		)
-		if err := ui.Run(w); err != nil {
-			log.Println(err)
-			os.Exit(1)
+
+		if err := draw(w); err != nil {
+			log.Fatal(err)
 		}
 		os.Exit(0)
 	}()
-
 	app.Main()
 }
 
-// UI holds all of the application state.
-type UI struct {
-	// Theme is used to hold the fonts used throughout the application.
-	Theme *material.Theme
-}
-
-// NewUI creates a new UI using the Go Fonts.
-func NewUI() *UI {
-	ui := &UI{}
-	// Load the theme and fonts.
-	ui.Theme = material.NewTheme(gofont.Collection())
-	return ui
-}
-
-// Run handles window events and renders the application.
-func (ui *UI) Run(w *app.Window) error {
-	// ops will be used to encode different operations.
+func draw(w *app.Window) error {
+	// ops are the operations from the UI
 	var ops op.Ops
 
-	// listen for events happening on the window.
-	for e := range w.Events() {
-		// detect the type of the event.
-		switch e := e.(type) {
-		// this is sent when the application should re-render.
-		case system.FrameEvent:
-			// gtx is used to pass around rendering and event information.
-			gtx := layout.NewContext(&ops, e)
-			// handle all UI logic.
-			ui.Layout(gtx)
-			// render and handle the operations from the UI.
-			e.Frame(gtx.Ops)
+	// startButton is a clickable widget
+	var startButton widget.Clickable
 
-		// this is sent when the application is closed.
-		case system.DestroyEvent:
-			return e.Err
+	// th defines the material design style
+	th := material.NewTheme(gofont.Collection())
+
+	// listen for events in the window.
+	for {
+		select {
+		case e := <-w.Events():
+			// detect what type of event
+			switch e := e.(type) {
+
+			// this is sent when the application should re-render.
+			case system.FrameEvent:
+				gtx := layout.NewContext(&ops, e)
+				// Let's try out the flexbox layout concept
+				if startButton.Clicked() {
+					boiling = !boiling
+				}
+
+				// Let's try out the flexbox layout concept
+				layout.Flex{
+					// Vertical alignment, from top to bottom
+					Axis: layout.Vertical,
+					// Empty space is left at the start, i.e. at the top
+					Spacing: layout.SpaceStart,
+				}.Layout(gtx,
+					layout.Rigid(
+						func(gtx C) D {
+							bar := material.ProgressBar(th, progress) // Here progress is used
+							return bar.Layout(gtx)
+						},
+					),
+					layout.Rigid(
+						func(gtx C) D {
+							// ONE: First define margins around the button using layout.Inset ...
+							margins := layout.Inset{
+								Top:    unit.Dp(25),
+								Bottom: unit.Dp(25),
+								Right:  unit.Dp(35),
+								Left:   unit.Dp(35),
+							}
+							// TWO: ... then we lay out those margins ...
+							return margins.Layout(gtx,
+								// THREE: ... and finally within the margins, we define and lay out the button
+								func(gtx C) D {
+									var text string
+									if !boiling {
+										text = "Start"
+									} else {
+										text = "Stop"
+									}
+									btn := material.Button(th, &startButton, text)
+									return btn.Layout(gtx)
+								},
+							)
+						},
+					),
+				)
+				e.Frame(gtx.Ops)
+				// this is sent when the application is closed.
+			case system.DestroyEvent:
+				return e.Err
+
+			}
+		case p := <-progressIncrementer:
+			if boiling && progress < 1 {
+				progress += p
+				w.Invalidate()
+			}
 		}
+
 	}
 
-	return nil
-}
-
-// Layout handles rendering and input.
-func (ui *UI) Layout(gtx layout.Context) layout.Dimensions {
-	return Title(ui.Theme, uilib.Name()).Layout(gtx)
-}
-
-// Title creates a center aligned H1.
-func Title(th *material.Theme, caption string) material.LabelStyle {
-	l := material.H1(th, caption)
-	l.Color = TitleColor
-	l.Alignment = text.Middle
-	return l
 }
