@@ -21,6 +21,14 @@ jobs:
     steps:
       - name: checkout repo
         uses: actions/checkout@v2
+      - name: gogio
+        uses: go install gioui.org/cmd/gogio@latest
       - name: dist
-        run: make deploy
-        
+        run: make dist
+      - name: deploy
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          # this option will not maintain any history of your previous pages deployment
+          # set to false if you want all page build to be committed to your gh-pages branch history
+          single-commit: true
