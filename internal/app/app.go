@@ -27,10 +27,22 @@ var boiling bool
 var progressIncrementer chan float32
 
 type app struct {
+	height float32
+	width  float32
+	window *gioApp.Window
 }
 
-func NewApp() *app {
-	return &app{}
+func NewApp(title string, width, height float32) *app {
+	// create new window
+	window := gioApp.NewWindow(
+		gioApp.Title(title),
+		gioApp.Size(unit.Dp(width), unit.Dp(height)),
+	)
+	return &app{
+		height: height,
+		width:  width,
+		window: window,
+	}
 }
 
 func (a *app) Start() {
@@ -43,13 +55,7 @@ func (a *app) Start() {
 		}
 	}()
 	go func() {
-		// create new window
-		w := gioApp.NewWindow(
-			gioApp.Title("Egg timer"),
-			gioApp.Size(unit.Dp(400), unit.Dp(600)),
-		)
-
-		if err := draw(w); err != nil {
+		if err := a.draw(); err != nil {
 			log.Fatal(err)
 		}
 		os.Exit(0)
@@ -57,7 +63,7 @@ func (a *app) Start() {
 	gioApp.Main()
 }
 
-func draw(w *gioApp.Window) error {
+func (a *app) draw() error {
 	// ops are the operations from the UI
 	var ops op.Ops
 
@@ -70,7 +76,7 @@ func draw(w *gioApp.Window) error {
 	// listen for events in the window.
 	for {
 		select {
-		case e := <-w.Events():
+		case e := <-a.window.Events():
 			// detect what type of event
 			switch e := e.(type) {
 
@@ -130,7 +136,7 @@ func draw(w *gioApp.Window) error {
 		case p := <-progressIncrementer:
 			if boiling && progress < 1 {
 				progress += p
-				w.Invalidate()
+				a.window.Invalidate()
 			}
 		}
 
