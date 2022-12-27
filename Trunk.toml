@@ -47,42 +47,15 @@ wasm_opt = "version_110"
 # Proxies are optional, and default to `None`.
 # Proxies are only run as part of the `trunk serve` command.
 
-[[proxy]]
-# This WebSocket proxy example has a backend and ws field. This example will listen for
-# WebSocket connections at `/api/ws` and proxy them to `ws://localhost:9000/api/ws`.
-backend = "ws://localhost:9000/api/ws"
-ws = true
-
-[[proxy]]
-# This proxy example has a backend and a rewrite field. Requests received on `rewrite` will be
-# proxied to the backend after rewriting the `rewrite` prefix to the `backend`'s URI prefix.
-# E.G., `/api/v1/resource/x/y/z` -> `/resource/x/y/z`
-rewrite = "/api/v1/"
-backend = "http://localhost:9000/"
-
-[[proxy]]
-# This proxy specifies only the backend, which is the only required field. In this example,
-# request URIs are not modified when proxied.
-backend = "http://localhost:9000/api/v2/"
-
-[[proxy]]
-# This proxy example has an insecure field. In this example,
-# connections to https://localhost:9000/api/v3/ will not have certificate validation performed.
-# This is useful for development with a server using self-signed certificates.
-backend = "https://localhost:9000/api/v3/"
-insecure = true
-
 ## hooks
 # Hooks are optional, and default to `None`.
 # Hooks are executed as part of Trunk's main build pipeline, no matter how it is run.
 
 [[hooks]]
-# This hook example shows all the current available fields. It will execute the equivalent of
-# typing "echo Hello Trunk!" right at the start of the build process (even before the HTML file
-# is read). By default, the command is spawned directly and no shell is used.
-stage = "pre_build"
-command = "echo"
-command_arguments = ["Hello", "Trunk!"]
+# tail wind cli should be installed 
+stage = "build"
+command = "sh"
+command_arguments = ["-c", "tailwindcss -i src/tailwind.css -o $TRUNK_STAGING_DIR/tailwind.css"]
 
 [[hooks]]
 # This hook example shows running a command inside a shell. As a result, features such as variable
