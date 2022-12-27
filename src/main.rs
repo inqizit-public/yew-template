@@ -38,6 +38,9 @@ impl Component for App {
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div>
+                <h1 class="text-4xl  red-100 underline">
+                    { "Hello world!" }
+                </h1>
                 <div class="panel">
                     // A button to send the Increment message
                     <button class="button" onclick={ctx.link().callback(|_| Msg::Increment)}>
