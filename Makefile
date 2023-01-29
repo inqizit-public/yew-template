@@ -8,8 +8,8 @@ serve:
 
 deploy: 
 	-rm -rf tmp
-	git clone https://github.com/quinelab/quinelab.github.io.git tmp
-	-rm tmp/*
-	-cp dist/* tmp
-	cd tmp; git add .; git commit -m "deploy"; git push
+	git clone https://github.com/inqizit-public/yew-template.git tmp
+	# -rm tmp/*
+	# -cp dist/* tmp
+	cd tmp; git checkout gh-pages; rm *; cp ../dist/* tmp; git add .; git commit -m "deploy"; git push
 	-rm -rf tmp
