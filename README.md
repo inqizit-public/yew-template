@@ -1,1 +1,1 @@
-QuineLab Web 
+QuineLab Web # yew-template
